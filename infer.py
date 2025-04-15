@@ -31,33 +31,32 @@ def infer_tflite(model_file, image_file):
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
 
-    # image = get_image_as_tensor(image_file)
-
-    image = cv2.imread(image_file)
-    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    image_resized = cv2.resize(image_rgb, (IMAGE_SIZE, IMAGE_SIZE))
-    input_data = np.expand_dims(image_resized / 255.0, axis=0).astype(np.float32)
-
-    breakpoint()
-    print("Input data shape:", input_data.shape)
+    image = get_image_as_tensor(image_file)
+ 
+    print("Input data shape:", image.shape)
     print("Expected shape:", input_details[0]['shape'])
 
-    interpreter.set_tensor(input_details[0]['index'], input_data)
+    interpreter.set_tensor(input_details[0]['index'], image)
     interpreter.invoke()
 
     # Get output tensor
-    output_data = interpreter.get_tensor(output_details[0]['index'])
+    boxes_tensor = interpreter.get_tensor(output_details[0]['index'])[0]
+    scores_tensor = interpreter.get_tensor(output_details[1]['index'])[0]
 
-    detections = output_data[0]  # remove batch dimension
+    class_ids = np.argmax(scores_tensor, axis=1)
+    class_confs = np.max(scores_tensor, axis=1)
 
-    for det in detections:
-        breakpoint()
-        x1, y1, x2, y2, conf, cls = det
-        if conf > 0.3:
-            print(f"Class: {int(cls)}, Confidence: {conf:.2f}, Box: ({x1}, {y1}, {x2}, {y2})")
+    max_conf = -float("inf")
+    detected_class = -1
+    for i, conf in enumerate(class_confs):
+        if conf > max_conf:
+            max_conf = conf
+            detected_class = class_ids[i]
 
+    print(CLASS_MAPPINGS[detected_class])
+    print(max_conf)
+    # print(detected_class, max_conf)
 
-    print("Input shape:", input_details[0]['shape'])  # Usually (1, 640, 640, 3)
 
 
 def get_image_as_tensor(image_file):
@@ -76,6 +75,9 @@ def infer_keras(model_file, image_file):
 
     # infer
     y_pred = model.predict(image)
+
+    breakpoint()
+
     print(y_pred)
 
     # post-process

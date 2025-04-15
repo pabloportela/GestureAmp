@@ -98,22 +98,21 @@ def dict_to_tuple(inputs):
 
 
 def visualize_detections(model, dataset, bounding_box_format):
-    for i in range(5):
-        images, y_true = next(iter(dataset.take(i+1)))
-        y_pred = model.predict(images)
-        keras_cv.visualization.plot_bounding_box_gallery(
-            images,
-            value_range=(0, 255),
-            bounding_box_format=bounding_box_format,
-            y_pred=y_pred,
-            scale=4,
-            rows=2,
-            cols=2,
-            show=True,
-            font_scale=0.5,
-            class_mapping=CLASS_MAPPINGS,
-        )
-        plt.show()
+    images, y_true = next(iter(dataset.take(i+1)))
+    y_pred = model.predict(images)
+    keras_cv.visualization.plot_bounding_box_gallery(
+        images,
+        value_range=(0, 255),
+        bounding_box_format=bounding_box_format,
+        y_pred=y_pred,
+        scale=4,
+        rows=2,
+        cols=2,
+        show=True,
+        font_scale=0.5,
+        class_mapping=CLASS_MAPPINGS,
+    )
+    plt.show()
 
 
 def load_sample(image_filename, classes, boxes):
