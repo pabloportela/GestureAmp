@@ -6,12 +6,26 @@ import cv2
 import numpy as np
 import tensorflow as tf
 from ai_edge_litert.interpreter import Interpreter
+from mpd import MPDClient
 
 
 from common import IMAGE_SIZE, BOUNDING_BOX_FORMAT, CLASS_MAPPINGS
 
 
 CONFIDENCE_THRESHOLD = 0.8
+
+
+mpd_client = None
+
+
+def handle_class(detected_class_id):
+    global mpd_client
+    if CLASS_MAPPINGS[detected_class_id] == "mute":
+        mpd_client.stop()
+        print("stop")
+    elif CLASS_MAPPINGS[detected_class_id] == "fist":
+        mpd_client.play()
+        print("play")
 
 
 def get_detected_class(scores_tensor):
@@ -80,15 +94,8 @@ def run(interpreter):
             print("Failed to grab frame")
             break
 
-        # image = prepare_image_for_inference(image)
-        t_decode_0 = cv2.getTickCount()
-        input_data = prepare_image_for_inference_via_jpeg_codec(frame)
-        t_decode_1 = cv2.getTickCount()
-        msecs = round((t_decode_1 - t_decode_0) / freq * 1000)
-        print(f'prepared img via jpeg trick in slechts {msecs} microseconds')
-        # breakpoint()
-
         # Perform the inference
+        input_data = prepare_image_for_inference_via_jpeg_codec(frame)
         interpreter.set_tensor(input_details[0]['index'], input_data)
         interpreter.invoke()
         scores_tensor = interpreter.get_tensor(output_details[1]['index'])[0]
@@ -97,6 +104,7 @@ def run(interpreter):
         text = 'FPS: {0:.2f}'.format(frame_rate_calc)
         if (detected_class_id != -1):
             text += f' detected {CLASS_MAPPINGS[detected_class_id]}'
+            handle_class(detected_class_id)
 
         # Draw framerate in corner of frame
         cv2.putText(
@@ -125,10 +133,22 @@ def run(interpreter):
 
 
 def main():
+    # handle cmdline args
     model_file = pathlib.Path(sys.argv[1])
     assert(model_file.suffix == ".tflite")
+
+    # init object detector
     interpreter = Interpreter(model_path=str(model_file))
     interpreter.allocate_tensors()
+
+    # init MPD client
+    global mpd_client
+    mpd_client = MPDClient()
+    mpd_client.connect("localhost", 6600)
+
+    # breakpoint()
+
+    # run loop
     run(interpreter)
 
 
