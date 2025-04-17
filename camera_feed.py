@@ -2,8 +2,6 @@ import sys
 import pathlib
 import time
 
-import cProfile
-
 import cv2
 import numpy as np
 import tensorflow as tf
@@ -83,19 +81,33 @@ def run(interpreter):
             break
 
         # image = prepare_image_for_inference(image)
+        t_decode_0 = cv2.getTickCount()
         input_data = prepare_image_for_inference_via_jpeg_codec(frame)
+        t_decode_1 = cv2.getTickCount()
+        msecs = round((t_decode_1 - t_decode_0) / freq * 1000)
+        print(f'prepared img via jpeg trick in slechts {msecs} microseconds')
         # breakpoint()
 
         # Perform the inference
         interpreter.set_tensor(input_details[0]['index'], input_data)
         interpreter.invoke()
         scores_tensor = interpreter.get_tensor(output_details[1]['index'])[0]
-        detected_class = get_detected_class(scores_tensor)
-        if (detected_class != -1):
-            print(f'detected {CLASS_MAPPINGS[detected_class]}')
+        detected_class_id = get_detected_class(scores_tensor)
+
+        text = 'FPS: {0:.2f}'.format(frame_rate_calc)
+        if (detected_class_id != -1):
+            text += f' detected {CLASS_MAPPINGS[detected_class_id]}'
 
         # Draw framerate in corner of frame
-        cv2.putText(frame,'FPS: {0:.2f}'.format(frame_rate_calc),(30,50),cv2.FONT_HERSHEY_SIMPLEX,1,(255,255,0),2,cv2.LINE_AA)
+        cv2.putText(
+            frame,
+            text,
+            (30,50),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            1,
+            (255,255,0),
+            2,
+            cv2.LINE_AA)
         cv2.imshow('Gesture detector', frame)
 
         # Calculate framerate
@@ -117,8 +129,8 @@ def main():
     assert(model_file.suffix == ".tflite")
     interpreter = Interpreter(model_path=str(model_file))
     interpreter.allocate_tensors()
-    # cProfile.run('run(interpreter)')
     run(interpreter)
 
 
-main()
+if __name__ == "__main__":
+    main()
