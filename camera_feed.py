@@ -120,6 +120,12 @@ def run(interpreter):
                 cv2.LINE_AA)
             cv2.imshow('Gesture detector', frame)
 
+
+        # Press 'q' to exit the video stream
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+
         # Calculate framerate
         t2 = cv2.getTickCount()
         time1 = (t2-t1)/freq
