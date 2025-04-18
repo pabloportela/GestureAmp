@@ -1,3 +1,4 @@
+import os
 import sys
 import pathlib
 import time
@@ -9,7 +10,7 @@ from ai_edge_litert.interpreter import Interpreter
 from mpd import MPDClient
 
 
-from common import IMAGE_SIZE, BOUNDING_BOX_FORMAT, CLASS_MAPPINGS
+from common import IMAGE_SIZE, BOUNDING_BOX_FORMAT, CLASS_MAPPINGS, IS_HEADLESS
 
 
 CONFIDENCE_THRESHOLD = 0.8
@@ -106,26 +107,23 @@ def run(interpreter):
             text += f' detected {CLASS_MAPPINGS[detected_class_id]}'
             handle_class(detected_class_id)
 
-        # Draw framerate in corner of frame
-        cv2.putText(
-            frame,
-            text,
-            (30,50),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            1,
-            (255,255,0),
-            2,
-            cv2.LINE_AA)
-        cv2.imshow('Gesture detector', frame)
+        if not IS_HEADLESS:
+            # Draw framerate in corner of frame
+            cv2.putText(
+                frame,
+                text,
+                (30,50),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (255,255,0),
+                2,
+                cv2.LINE_AA)
+            cv2.imshow('Gesture detector', frame)
 
         # Calculate framerate
         t2 = cv2.getTickCount()
         time1 = (t2-t1)/freq
         frame_rate_calc= 1/time1
-
-        # Press 'q' to exit the video stream
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
 
     # Release the capture and close any OpenCV windows
     cap.release()
