@@ -41,7 +41,7 @@ def run(camera, recognizer):
             print("Failed to grab frame")
             break
 
-        class_id, classi_name = recognizer.recognize(frame)
+        class_id, class_name = recognizer.recognize(frame)
 
         text = 'FPS: {0:.2f}'.format(frame_rate_calc)
         if (class_id != -1):
