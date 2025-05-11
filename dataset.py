@@ -7,7 +7,7 @@ import tensorflow as tf
 import common
 
 
-DATA_DIR = pathlib.Path('/home/pablo/un_buen_gesto/hagrid-512p-selected')
+DATA_DIR = pathlib.Path('/home/pablo/un_buen_gesto/hagrid-512p')
 ANNOTATIONS_DIR = pathlib.Path('/home/pablo/un_buen_gesto/hagrid-512p-annotations')
 BATCH_SIZE = 8
 

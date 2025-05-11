@@ -13,7 +13,7 @@ BATCH_SIZE = 8
 LEARNING_RATE = 0.001
 WEIGHT_DECAY = 0.004
 GLOBAL_CLIPNORM = 10.0
-EPOCHS = 5
+EPOCHS = 10
 
 
 
@@ -98,7 +98,7 @@ def dict_to_tuple(inputs):
 
 
 def visualize_detections(model, dataset, bounding_box_format):
-    images, y_true = next(iter(dataset.take(i+1)))
+    images, y_true = next(iter(dataset.take(1)))
     y_pred = model.predict(images)
     keras_cv.visualization.plot_bounding_box_gallery(
         images,
